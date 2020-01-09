@@ -2,9 +2,8 @@ import bson
 from bson import json_util, ObjectId
 from bson.json_util import dumps
 from flask import Flask, jsonify, request, json
-
-from pymongo import MongoClient, mongo_client
 from flask_pymongo import PyMongo
+from pymongo import MongoClient
 
 app = Flask(__name__)
 app.config["MONGO_URI"] = "mongodb://127.0.0.1:27017/language_db"
@@ -44,12 +43,12 @@ def add_button():
     return "Added successfully"
 
 
-@app.route("/get/<_id>/<language>", methods=["PUT","GET"])
-def add_field(_id,language):
+@app.route("/get/<_id>/<language>", methods=["PUT", "GET"])
+def add_field(_id, language):
     x = collection.find_one({"_id": ObjectId(bson.ObjectId(oid=str(_id)))})
-    collection.updateOne({"_id": ObjectId(bson.ObjectId(oid=str(_id))),},
-        {"$set" : {language: "Gray"}})
-   # collection.updateOne({x, "language": },{ $set: {"language.$"}})
+    collection.updateOne({"_id": ObjectId(bson.ObjectId(oid=str(_id))), },
+                         {"$set": {language: "Gray"}})
+    # collection.updateOne({x, "language": },{ $set: {"language.$"}})
     return "Updated successfully"
 
 

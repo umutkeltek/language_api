@@ -8,7 +8,7 @@ if defined _OLD_CODEPAGE (
     "%SystemRoot%\System32\chcp.com" 65001 > nul
 )
 
-set VIRTUAL_ENV=C:\Users\umutk\Desktop\LanguageApi\venv
+set VIRTUAL_ENV=C:\Users\mgani\Documents\Github\language_api\venv
 
 if not defined PROMPT set PROMPT=$P$G
 
