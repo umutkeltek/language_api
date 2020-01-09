@@ -1,9 +1,7 @@
-import bson
-from bson import json_util, ObjectId
-from bson.json_util import dumps
+from bson import json_util
 from flask import Flask, jsonify, request, json
-from flask_pymongo import PyMongo
 from pymongo import MongoClient
+from flask_pymongo import PyMongo
 
 app = Flask(__name__)
 app.config["MONGO_URI"] = "mongodb://127.0.0.1:27017/language_db"
@@ -14,7 +12,7 @@ db = client['language']
 collection = db['database']
 
 
-@app.route("/all", methods=["GET"])
+@app.route("/my_api/all", methods=["GET"])
 def show_all():
     output = []
     all_elements = collection.find()
@@ -23,33 +21,57 @@ def show_all():
     return jsonify(output)
 
 
-@app.route("/get/<_id>", methods=["GET"])
+@app.route("/my_api/all/<language>", methods=["GET"])
+def show_all_desired_language(language):
+    output = []
+    all_elements = collection.find({}, {"_id": 1, language: 1})
+    for data in all_elements:
+        output.append(json.loads(json_util.dumps(data)))
+    return jsonify(output)
+
+
+@app.route("/my_api/<_id>", methods=["GET"])
 def get_button(_id):
-    lng = collection.find_one({"_id": ObjectId(bson.ObjectId(oid=str(_id)))})
-    return dumps(lng)
+    lng = collection.find_one({"_id": _id})
+    return jsonify(json.loads(json_util.dumps(lng)))
 
 
-@app.route("/delete/<_id>", methods=["DELETE"])
+@app.route("/my_api/delete/<_id>", methods=["DELETE", "GET"])
 def delete_button(_id):
-    lng = collection.find_one({"_id": ObjectId(bson.ObjectId(oid=str(_id)))})
+    lng = collection.find_one({"_id": _id})
     collection.remove(lng)
-    print("Button has been removed")
+    return "Button has been removed"
 
 
-@app.route("/add", methods=["POST"])
+@app.route("/my_api/add", methods=["POST"])
 def add_button():
+    field_name = request.json["_id"]
     user_json = request.json
-    collection.insert_one(user_json)
+    collection.insert_one(user_json, field_name)
     return "Added successfully"
 
 
-@app.route("/get/<_id>/<language>", methods=["PUT", "GET"])
-def add_field(_id, language):
-    x = collection.find_one({"_id": ObjectId(bson.ObjectId(oid=str(_id)))})
-    collection.updateOne({"_id": ObjectId(bson.ObjectId(oid=str(_id))), },
-                         {"$set": {language: "Gray"}})
-    # collection.updateOne({x, "language": },{ $set: {"language.$"}})
-    return "Updated successfully"
+@app.route("/my_api/update/<_id>/<language>", methods=["PUT", "GET"])
+def update_language_button(_id, language):
+    json_update = request.json[language]
+    x = collection.find_one_and_update({"_id": _id}, {"$set": {language: json_update}}, upsert=True,
+                                       return_document=True)
+    return "Your button has been updated"
+
+
+@app.route("/my_api/get/<language>/<_id>", methods=["GET"])
+def get_specific_buttons_value(_id, language):
+    x = collection.find({"_id": _id}, {_id: 1, language: 1})
+    return jsonify(json.loads(json_util.dumps(x)))
+
+
+@app.route("/my_api/update/<_id>", methods=["PUT", "GET"])
+def update_all_language_field(_id):
+    user_json = request.json
+    x = collection.find_one_and_update({"_id": _id}, {"$set": user_json}, upsert=True,
+                                       return_document=True)
+
+    return "Your button has been updated"
 
 
 if __name__ == "__main__":
